@@ -34,12 +34,14 @@ class _TCPConnectionNotify is TCPConnectionNotify
   var _http_parser: _HttpParser = _HttpParser
   let _buffer: Reader = Reader
   var _state: State = _Connecting
-  var _frame_decoder: _FrameDecoder = _FrameDecoder
+  var _frame_decoder: (_FrameDecoder | None) = None
 
   new iso create(notify: WebSocketConnectionNotify iso) =>
     _notify = consume notify
 
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize) : Bool =>
+    @printf[I32](("Recv: " + data.size().string() + "\n").cstring())
+
     _buffer.append(consume data)
 
     match _state
@@ -52,22 +54,36 @@ class _TCPConnectionNotify is TCPConnectionNotify
             let rep = req.handshake()?
             conn.write(rep)
             _state = _Open
+            conn.expect(2) // expect minimal header
+            _frame_decoder = _FrameDecoder(conn)
           else
-            _state = _Open
+            @printf[I32]("Error 1\n".cstring())
+            _state = _Error
           end
         end
       end
     | _Open =>
-      try
-        let frame = _frame_decoder.decode(_buffer)?
+      match _frame_decoder
+      | let fd: _FrameDecoder =>
+        try
+          let frame = fd.decode(_buffer)?
+          match frame
+          | let f: Frame =>
+              @printf[I32](f.data.cstring())
+              conn.expect(2)
+          | let n: USize =>
+              @printf[I32]("expect ".cstring())
+              @printf[I32](n.string().cstring())
+              @printf[I32]("\n".cstring())
+              conn.expect(n)
+          end
+        else
+          @printf[I32]("Error\n".cstring())
+        end
       end
-      true
     | _Closing => @printf[I32]("Closing: parse data to frame pass and notify\n".cstring())
-      true
     | _Closed => @printf[I32]("Closed".cstring())
-      true
     | _Error => @printf[I32]("Error".cstring())
-      false
     end
 
     match _state
