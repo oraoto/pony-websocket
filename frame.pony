@@ -54,9 +54,9 @@ class trn Frame
     data = data'
     is_masked = is_mask'
 
-  new iso close(is_mask': Bool = false) =>
+  new iso close(code: U16 = 1000, is_mask': Bool = false) =>
     opcode = Close
-    data = ""
+    data = [U8.from[U16](code.shr(8)); U8.from[U16](code and 0xFF)]
     is_masked = is_mask'
 
   // Build a frame that the server can send to client, data is not masked
@@ -74,12 +74,18 @@ class trn Frame
       writer.u8(0b1000_1010)
       writer.u8(0)
       return writer.done()
+    | Close =>
+      writer.u8(0b1000_1000)
+      writer.u8(0x2)      // two bytes for code
+      writer.write(data)  // status code
+      // writer.u16_be(1000)
+      return writer.done()
     end
 
     var payload_len = data.size()
     if payload_len < 126 then
       writer.u8(U8.from[USize](payload_len))
-    elseif payload_len < 65535 then
+    elseif payload_len < 65536 then
       writer.u8(126)
       writer.u16_be(U16.from[USize](payload_len))
     else
@@ -111,6 +117,7 @@ class _FrameDecoder
   var mask_key: Array[U8] = mask_key.create(4)
   var _expect: USize = 2
   var _payload_len: USize = 0
+  // var _writer: Writer // segment payload buffer
 
   fun ref decode(buffer: Reader): (USize | Frame val)? =>
     match state
@@ -137,12 +144,16 @@ class _FrameDecoder
     | Ping => Frame.ping(String.from_array(consume payload), is_mask)
     | Pong => Frame.pong(String.from_array(consume payload), is_mask)
     | Continuation => error
-    | Close => Frame.close(is_mask)
+    | Close => Frame.close(1000, is_mask) // TODO parse code
     end
 
   fun ref _parse_header(buffer: Reader): USize? =>
     let first_byte = buffer.u8()?
     is_fin = first_byte.shr(7) == 0b1
+    let rsv = (first_byte and 0b0111_0000).shr(4)
+    if rsv != 0 then
+      error
+    end
 
     match first_byte and 0b00001111
     | Text()    => opcode = Text
@@ -150,6 +161,7 @@ class _FrameDecoder
     | Ping()    => opcode = Ping
     | Pong()    => opcode = Pong
     | Close()   => opcode = Close
+    | let other: U8 => error
     end
 
     let second_byte = buffer.u8()?

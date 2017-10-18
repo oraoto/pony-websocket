@@ -1,0 +1,15 @@
+{
+    "outdir": "./reports/servers",
+
+    "servers": [{
+        "agent": "pony-websocket",
+        "url": "ws://127.0.0.1:8989"
+    }],
+
+    "cases": [
+        "*"
+    ],
+    "exclude-cases": [
+        "9.*", "12.*", "13.*"
+    ]
+}

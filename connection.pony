@@ -27,8 +27,8 @@ actor WebSocketConnection
       _tcp.writev(Frame.pong("").build())
     end
 
-  be send_close() =>
+  be send_close(code: U16) =>
     if not closed then
-      _tcp.writev(Frame.close().build())
+      _tcp.writev(Frame.close(code).build())
       _tcp.dispose()
     end

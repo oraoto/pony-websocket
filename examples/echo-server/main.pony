@@ -1,6 +1,5 @@
-use "net"
-use "time"
-use "collections"
+use "package:../../"
+
 
 actor Main
   new create(env: Env) =>
@@ -18,12 +17,14 @@ class MyWebSocketListenNotify is WebSocketListenNotify
     MyWebSocketConnectionNotify
 
 class MyWebSocketConnectionNotify is WebSocketConnectionNotify
-  fun ref connected(conn: WebSocketConnection ref) =>
+  fun ref opened(conn: WebSocketConnection tag) =>
+    @printf[I32]("New client connected\n".cstring())
     None
 
   fun ref text_received(conn: WebSocketConnection tag, text: String) : Bool =>
     conn.send_text(text)
-    if text == "close" then
-      conn.send_close()
-    end
+    true
+
+  fun ref binary_received(conn: WebSocketConnection tag, data: Array[U8 val] val) : Bool =>
+    conn.send_binary(data)
     true
