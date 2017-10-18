@@ -58,16 +58,11 @@ class _FrameDecoder
   var payload_type: PayloadType = ExtendedPayload0
   var data: String = ""
   var is_fin: Bool = true
-  var conn: TCPConnection ref
   var state: _DecodeState = _ExpectHeader
   var is_mask: Bool = true
   var mask_key: Array[U8] = mask_key.create(4)
   var _expect: USize = 2
   var _payload_len: USize = 0
-
-  new create(conn': TCPConnection ref) =>
-    conn = conn'
-
 
   fun ref decode(buffer: Reader): (USize | Frame)? =>
     match state
@@ -105,16 +100,13 @@ class _FrameDecoder
     let mask_bytes : USize = if is_mask then 4 else 0 end
 
     let payload_len = second_byte and 0b01111111
-    @printf[I32]("payload_len ".cstring())
-    @printf[I32](payload_len.string().cstring())
-    @printf[I32]("\n".cstring())
 
     if payload_len == 126 then
       state = _ExpectExtendedPayloadLen16
       return 2
     elseif payload_len == 127 then
       state = _ExpectExtendedPayloadLen64
-      return 4
+      return 8
     else
       state = _ExpectPayload
       _payload_len = USize.from[U8](payload_len)
@@ -123,22 +115,17 @@ class _FrameDecoder
     end
 
   fun ref _parse_extended_16(buffer: Reader): USize? =>
-    @printf[I32]("extended_16\n".cstring())
     let payload_len = buffer.u16_be()?
-
     state = _ExpectPayload
     _payload_len = USize.from[U16](payload_len)
     _payload_len + if is_mask then 4 else 0 end
 
   fun ref _parse_extended_64(buffer: Reader): USize? =>
-    @printf[I32]("extended_64\n".cstring())
     let payload_len = buffer.u64_be()?
-    if is_mask then
-      mask_key = buffer.block(4)?
-    end
     state = _ExpectPayload
     _payload_len = USize.from[U64](payload_len)
     _payload_len + if is_mask then 4 else 0 end
+
 
   fun unmask(payload: Array[U8 val] iso): Array[U8 val] iso^ =>
     let p = consume payload
