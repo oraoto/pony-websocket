@@ -1,21 +1,20 @@
 
 interface WebSocketConnectionNotify
 
-  fun ref open(conn: WebSocketConnection ref) =>
+  fun ref opened(conn: WebSocketConnection tag) =>
     None
 
-  fun ref closed(conn: WebSocketConnection ref) =>
+  fun ref closed() =>
     None
 
-  fun ref text_received(conn: WebSocketConnection, data: Array[U8 val] iso) : Bool =>
+  fun ref text_received(conn: WebSocketConnection tag, text: String) : Bool =>
     true
 
-  fun ref binary_received(conn: WebSocketConnection, data: Array[U8 val] iso, times: USize) : Bool =>
+  fun ref binary_received(conn: WebSocketConnection tag, data: Array[U8 val] val) : Bool =>
     true
 
 class DummyWebSocketConnectionNotify is WebSocketConnectionNotify
   fun ref connected(conn: WebSocketConnection ref) =>
     None
 
-  fun ref text_received(conn: WebSocketConnection, data: Array[U8 val] iso) : Bool =>
-    true
+

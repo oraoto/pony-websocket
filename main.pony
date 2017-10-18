@@ -18,5 +18,12 @@ class MyWebSocketListenNotify is WebSocketListenNotify
     MyWebSocketConnectionNotify
 
 class MyWebSocketConnectionNotify is WebSocketConnectionNotify
-   fun ref connected(conn: WebSocketConnection ref) =>
+  fun ref connected(conn: WebSocketConnection ref) =>
     None
+
+  fun ref text_received(conn: WebSocketConnection tag, text: String) : Bool =>
+    conn.send_text(text)
+    if text == "close" then
+      conn.send_close()
+    end
+    true

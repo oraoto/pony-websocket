@@ -5,9 +5,9 @@ actor WebSocketListener
   let _tcp_listner: TCPListener
 
   new create(auth: TCPListenerAuth, notify: WebSocketListenNotify iso, host: String, service: String) =>
-    _tcp_listner = TCPListener(auth, recover WSTCPListenNotify(consume notify) end, host, service)
+    _tcp_listner = TCPListener(auth, recover _TCPListenNotify(consume notify) end, host, service)
 
-class WSTCPListenNotify is TCPListenNotify
+class _TCPListenNotify is TCPListenNotify
   var notify: WebSocketListenNotify iso
 
   new create(notify': WebSocketListenNotify iso) =>
@@ -22,14 +22,13 @@ class WSTCPListenNotify is TCPListenNotify
 
 primitive _Open
 primitive _Connecting
-primitive _Closing
 primitive _Closed
 primitive _Error
 
-type State is (_Connecting | _Open | _Closing | _Closed | _Error)
+type State is (_Connecting | _Open | _Closed | _Error)
 
 class _TCPConnectionNotify is TCPConnectionNotify
-  var _notify: WebSocketConnectionNotify iso
+  var _notify: WebSocketConnectionNotify ref
   var _http_parser: _HttpParser ref = _HttpParser
   let _buffer: Reader ref = Reader
   var _state: State = _Connecting
@@ -41,19 +40,15 @@ class _TCPConnectionNotify is TCPConnectionNotify
 
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize) : Bool =>
     _buffer.append(consume data)
+
     match _connecion
-    | None =>
-      let dummy_notify = DummyWebSocketConnectionNotify
-      _connecion = WebSocketConnection(conn, _notify = consume dummy_notify)
+    | None => _connecion = WebSocketConnection(conn)
     end
 
     try
       match _state
       | _Connecting => _handle_handshake(conn, _buffer)?
       | _Open => _handle_frame(conn, _buffer)?
-      | _Closing => @printf[I32]("Closing: parse data to frame pass and notify\n".cstring())
-      | _Closed => @printf[I32]("Closed".cstring())
-      | _Error => @printf[I32]("Error state".cstring())
       end
     else
       _state = _Error
@@ -61,12 +56,10 @@ class _TCPConnectionNotify is TCPConnectionNotify
 
     match _state
     | _Error  =>
-      // TODO Close Connection
       conn.close()
       false
     | _Closed  => false
     | _Open => true
-    | _Closing => true
     | _Connecting => true
     end
 
@@ -78,14 +71,26 @@ class _TCPConnectionNotify is TCPConnectionNotify
       let rep = req.handshake()?
       conn.write(rep)
       _state = _Open
+      match _connecion
+      | let c: WebSocketConnection => _notify.opened(c)
+      end
       conn.expect(2) // expect minimal header
     end
 
   fun ref _handle_frame(conn: TCPConnection ref, buffer: Reader ref)? =>
     let frame = _frame_decoder.decode(_buffer)?
     match frame
-    | let f: Frame =>
-        @printf[I32](f.data.cstring())
+    | let f: Frame val =>
+        match (_connecion, f.opcode)
+        | (None, Text) => error
+        | (let c : WebSocketConnection, Text)   => _notify.text_received(c, f.data as String)
+        | (let c : WebSocketConnection, Binary) => _notify.binary_received(c, f.data as Array[U8] val)
+        | (let c : WebSocketConnection, Ping)   => c.send_pong()
+        | (let c : WebSocketConnection, Close)  =>
+          _state = _Closed
+          c.send_close()
+          _notify.closed()
+        end
         conn.expect(2) // expect next header
     | let n: USize =>
         conn.expect(n)
