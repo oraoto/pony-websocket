@@ -17,14 +17,14 @@ actor WebSocketConnection
       _tcp.writev(Frame.binary(data).build())
     end
 
-  be send_ping() =>
+  be send_ping(data: Array[U8] val) =>
     if not closed then
-      _tcp.writev(Frame.ping("").build())
+      _tcp.writev(Frame.ping(data).build())
     end
 
-  be send_pong() =>
+  be send_pong(data: Array[U8] val) =>
     if not closed then
-      _tcp.writev(Frame.pong("").build())
+      _tcp.writev(Frame.pong(data).build())
     end
 
   be send_close(code: U16) =>

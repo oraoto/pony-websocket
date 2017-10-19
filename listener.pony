@@ -58,7 +58,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
     | _Error  =>
       match _connecion
       | let c: WebSocketConnection =>
-        c.send_close(1002)
+        c.send_close(_frame_decoder.status)
       end
       _notify.closed()
       false
@@ -89,9 +89,10 @@ class _TCPConnectionNotify is TCPConnectionNotify
         | (None, Text) => error
         | (let c : WebSocketConnection, Text)   => _notify.text_received(c, f.data as String)
         | (let c : WebSocketConnection, Binary) => _notify.binary_received(c, f.data as Array[U8] val)
-        | (let c : WebSocketConnection, Ping)   => c.send_pong()
+        | (let c : WebSocketConnection, Ping)   =>
+          c.send_pong(f.data as Array[U8] val)
+          conn.expect(2)
         | (let c : WebSocketConnection, Close)  =>
-          // @printf[I32]("rece Close Frame\n".cstring())
           _state = _Closed
           c.send_close(1000)
           _notify.closed()
