@@ -6,8 +6,6 @@ primitive UTF8
     let len = buf.size()
     var i = start_index
     var valid: Bool = true
-    let cont_mask: U8 = 0b0011_1111
-    let tag_cont: U8 =  0b1000_0000
 
     // TODO: multiline array
     let char_width: Array[U8] = [
@@ -20,7 +18,7 @@ primitive UTF8
         let w = char_width(USize.from[U8](first))?
         match w
         | 2 =>
-          if ((i + 1) == len) or ((buf(i + 1)? and (not cont_mask)) != tag_cont) then
+          if ((i + 1) == len) or _cont(buf(i + 1)?) then
             valid = false
             break
           else
