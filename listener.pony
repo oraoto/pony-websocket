@@ -39,6 +39,10 @@ class _TCPConnectionNotify is TCPConnectionNotify
     _notify = consume notify
 
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize) : Bool =>
+    if _state is _Error then
+      return false
+    end
+
     _buffer.append(consume data)
 
     match _connecion
