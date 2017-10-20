@@ -175,72 +175,12 @@ class _FrameDecoder
     end
 
   fun ref validate_utf8(data: Array[U8 val] iso, idx: USize): Array[U8 val] iso^? =>
-    let buf = consume data
-    let len = buf.size()
-    var i = idx
-    var valid: Bool = true
-    let cont_mask: U8 = 0b0011_1111
-    let tag_cont: U8 =  0b1000_0000
-    let char_width: Array[U8] = [
-      1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1; 0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0; 0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0; 0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0; 0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0; 0;0;2;2;2;2;2;2;2;2;2;2;2;2;2;2; 2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2; 3;3;3;3;3;3;3;3;3;3;3;3;3;3;3;3;4;4;4;4;4;0;0;0;0;0;0;0;0;0;0;0]
-
-    while i < len do
-      let first = buf(i)?
-      if first > 128 then
-        let w = char_width(USize.from[U8](first))?
-        match w
-        | 2 =>
-          if ((i + 1) == len) or (((buf(i + 1)? and (not cont_mask)) != tag_cont)) then
-            valid = false
-            break
-          else
-            i = i + 2
-          end
-        | 3 =>
-          if ((i + 2) >= len)
-            or ((buf(i + 1)? and 0xc0) != 0x80)
-            or ((buf(i + 2)? and 0xc0) != 0x80)
-            or ((buf(i)? == 0xe0) and ((buf(i + 1)? and 0xe0) == 0x80))
-            or ((buf(i)? == 0xed) and ((buf(i + 1)? and 0xe0) == 0xa0))
-            or (((buf(i + 2)? and (not cont_mask)) != tag_cont)) then
-            valid = false
-            break
-          else
-            i = i + 3
-          end
-        | 4 =>
-          if ((i + 3) >= len)
-            or ((buf(i + 1)? and 0xc0) != 0x80)
-            or ((buf(i + 2)? and 0xc0) != 0x80)
-            or ((buf(i + 3)? and 0xc0) != 0x80)
-            or ((buf(i)? == 0xf0) and ((buf(i + 1)? and 0xf0) == 0x80))
-            or ((buf(i)? == 0xf4) and (buf(i + 1)? > 0x8f))
-            or (buf(i)? > 0xf4) then
-            valid = false
-            break
-          else
-            i = i + 4
-          end
-        | let o: U8 =>
-          status = 1007
-          error
-        end
-      else
-        if first == 128 then
-          valid = false
-          break
-        end
-        i = i + 1
-      end
-    end
-
-    if valid then
-      buf
+    try
+      UTF8.validate(consume data, idx)?
     else
       status = 1007
       error
     end
-
 
   fun ref _concat_fragment(fragment_data: Array[ByteSeq] iso, payload: Array[U8 val] iso, size: USize): Array[U8 val] iso^ =>
     let new_p : Array[U8 val] iso = recover Array[U8].create(payload.size()) end
