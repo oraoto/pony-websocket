@@ -2,6 +2,8 @@
 
 WebSocket server for pony
 
+It's RFC6455 conformant, see [test report](https://oraoto.github.io/pony-websocket/).
+
 ## Installation
 
 * Install [pony-stable](https://github.com/ponylang/pony-stable)
@@ -15,5 +17,5 @@ WebSocket server for pony
 ```
 
 * `stable fetch` to fetch your dependencies
-* `use "pony-websocket"` to include this package
+* `use "websocket"` to include this package
 * `stable env ponyc` to compile your application
