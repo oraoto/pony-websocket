@@ -96,19 +96,25 @@ class _FrameDecoder
       error
     end
 
-  // TODO: reduce memory copy
   fun ref _concat_fragment(fragment_data: Array[ByteSeq] iso, payload: Array[U8 val] iso, size: USize): Array[U8 val] iso^ =>
-    let new_p : Array[U8 val] iso = recover Array[U8].create(payload.size()) end
-    for f in (consume fragment_data).values() do
-      match f
-      | let u: Array[U8] val =>
-        new_p.concat(recover u.values() end)
+    recover
+      let new_p = Array[U8].create(size)
+      var i: USize = 0
+      // var c: USize = 0
+      for f in (consume fragment_data).values() do
+        match f
+        | let u: Array[U8] val =>
+          let s = u.size()
+          u.copy_to(new_p, 0, i, s)
+          i = i + s
+          // c = c + 1
+        end
       end
+      let p: Array[U8 val] val = consume payload
+      let s = p.size()
+      p.copy_to(new_p, 0, i, s)
+      new_p
     end
-    for x in (consume payload).values() do
-      new_p.push(x)
-    end
-    new_p
 
   fun ref _parse_header(buffer: Reader): USize? =>
     status = 1000
