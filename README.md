@@ -26,7 +26,7 @@ The API is model after the [net](https://stdlib.ponylang.org/net--index) package
 
 Here is a simple echo server:
 
-~~~
+```pony
 use "websocket"
 
 actor Main
@@ -58,4 +58,4 @@ class EchoConnectionNotify is WebSocketConnectionNotify
   // A websocket connection enters the CLOSED state
   fun ref closed() =>
     @printf[I32]("Connection closed\n".cstring())
-~~~
+```
