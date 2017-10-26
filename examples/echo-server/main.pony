@@ -14,6 +14,9 @@ class EchoListenNotify is WebSocketListenNotify
   fun ref connected(): EchoConnectionNotify iso^ =>
     EchoConnectionNotify
 
+  fun ref not_listening() =>
+    @printf[I32]("Failed listening\n".cstring())
+
 class EchoConnectionNotify is WebSocketConnectionNotify
   // A websocket connection enters the OPEN state
   fun ref opened(conn: WebSocketConnection tag) =>

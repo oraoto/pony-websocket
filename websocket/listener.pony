@@ -18,7 +18,10 @@ class _TCPListenNotify is TCPListenNotify
     _TCPConnectionNotify(consume n)
 
   fun ref not_listening(listen: TCPListener ref) =>
-    None
+    notify.not_listening()
+
+  fun ref listening(listen: TCPListener ref) =>
+    notify.listening()
 
 primitive _Open
 primitive _Connecting

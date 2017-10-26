@@ -1,11 +1,7 @@
 interface WebSocketListenNotify
-  // fun ref listening(listen: WebSocketListener ref) =>
-  //   None
 
-  // fun ref not_listening(listener: WebSocketListener ref) =>
-  //   None
+  fun ref listening() => None
 
-  // fun ref closed(listener: WebSocketListener ref) =>
-  //   None
+  fun ref not_listening() => None
 
   fun ref connected(): WebSocketConnectionNotify iso^
