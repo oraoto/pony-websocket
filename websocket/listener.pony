@@ -42,7 +42,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
     _notify = consume notify
 
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize) : Bool =>
-    if _state is _Error then
+    if (_state is _Error) or (_state is _Closed) then
       return false
     end
 
@@ -67,7 +67,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
       | let c: WebSocketConnection =>
         c.send_close(_frame_decoder.status)
       end
-      _notify.closed()
+      conn.close()
       false
     | _Closed  => false
     | _Open => true
@@ -102,9 +102,11 @@ class _TCPConnectionNotify is TCPConnectionNotify
         | (let c : WebSocketConnection, Close)  =>
           _state = _Closed
           c.send_close(1000)
-          _notify.closed()
         end
         conn.expect(2) // expect next header
     | let n: USize =>
         conn.expect(n)
     end
+
+    fun ref closed(conn: TCPConnection ref) =>
+      _notify.closed()
