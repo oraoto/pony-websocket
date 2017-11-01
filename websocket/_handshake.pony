@@ -9,10 +9,10 @@ class _HandshakeRequest
 
   fun handshake(): String? =>
     try
-      let version = headers("Sec-WebSocket-Version")?
-      let key = headers("Sec-WebSocket-Key")?
-      let upgrade = headers("Upgrade")?
-      let connection = headers("Connection")?
+      let version = headers("sec-websocket-version")?
+      let key = headers("sec-websocket-key")?
+      let upgrade = headers("upgrade")?
+      let connection = headers("connection")?
 
       if version.lower() != "13" then error end
       if upgrade.lower() != "websocket" then error end

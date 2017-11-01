@@ -71,6 +71,7 @@ class _HttpParser
     let i = line.find(":")?
     let key = line.substring(0, i)
     key.strip()
+    key.lower_in_place()
     let key2: String val = consume key
     let value = line.substring(i + 1)
     value.strip()
