@@ -42,6 +42,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
     _notify = consume notify
 
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize) : Bool =>
+    // Should not handle any data when connection closed or error occured
     if (_state is _Error) or (_state is _Closed) then
       return false
     end
@@ -65,12 +66,11 @@ class _TCPConnectionNotify is TCPConnectionNotify
     | _Error  =>
       match _connecion
       | let c: WebSocketConnection =>
-        c.send_close(_frame_decoder.status)
+        c._close(_frame_decoder.status)
       end
-      conn.close()
       false
     | _Closed  => false
-    | _Open => true
+    | _Open    => true
     | _Connecting => true
     end
 
@@ -92,21 +92,20 @@ class _TCPConnectionNotify is TCPConnectionNotify
     let frame = _frame_decoder.decode(_buffer)?
     match frame
     | let f: Frame val =>
-        match (_connecion, f.opcode)
-        | (None, Text) => error
-        | (let c : WebSocketConnection, Text)   => _notify.text_received(c, f.data as String)
-        | (let c : WebSocketConnection, Binary) => _notify.binary_received(c, f.data as Array[U8] val)
-        | (let c : WebSocketConnection, Ping)   =>
-          c.send_pong(f.data as Array[U8] val)
-          conn.expect(2)
-        | (let c : WebSocketConnection, Close)  =>
-          _state = _Closed
-          c.send_close(1000)
-        end
-        conn.expect(2) // expect next header
+      match (_connecion, f.opcode)
+      | (None, Text) => error
+      | (let c : WebSocketConnection, Text)   => _notify.text_received(c, f.data as String)
+      | (let c : WebSocketConnection, Binary) => _notify.binary_received(c, f.data as Array[U8] val)
+      | (let c : WebSocketConnection, Ping)   => c._send_pong(f.data as Array[U8] val)
+      | (let c : WebSocketConnection, Close)  => c._close(1000)
+      end
+      conn.expect(2) // expect next header
     | let n: USize =>
-        conn.expect(n)
+      conn.expect(n) // need more data to parse an frame
     end
 
     fun ref closed(conn: TCPConnection ref) =>
+      // When TCP connection is closed, enter CLOSED state.
+      // See https://tools.ietf.org/html/rfc6455#section-7.1.4
+      _state = _Closed
       _notify.closed()
