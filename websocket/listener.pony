@@ -108,4 +108,6 @@ class _TCPConnectionNotify is TCPConnectionNotify
       // When TCP connection is closed, enter CLOSED state.
       // See https://tools.ietf.org/html/rfc6455#section-7.1.4
       _state = _Closed
-      _notify.closed()
+      match _connecion
+      | let c: WebSocketConnection => _notify.closed(c)
+      end

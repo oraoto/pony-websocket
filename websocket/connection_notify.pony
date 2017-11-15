@@ -3,7 +3,7 @@ interface WebSocketConnectionNotify
   fun ref opened(conn: WebSocketConnection tag) =>
     None
 
-  fun ref closed() =>
+  fun ref closed(conn: WebSocketConnection tag) =>
     None
 
   fun ref text_received(conn: WebSocketConnection tag, text: String): None =>

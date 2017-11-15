@@ -32,5 +32,5 @@ class EchoConnectionNotify is WebSocketConnectionNotify
     conn.send_binary(data)
 
   // A websocket connection enters the CLOSED state
-  fun ref closed() =>
+  fun ref closed(conn: WebSocketConnection tag) =>
     @printf[I32]("Connection closed\n".cstring())
