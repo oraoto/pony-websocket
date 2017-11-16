@@ -49,13 +49,9 @@ class _TCPConnectionNotify is TCPConnectionNotify
 
     _buffer.append(consume data)
 
-    match _connecion
-    | None => _connecion = WebSocketConnection(conn)
-    end
-
     try
       match _state
-      | _Connecting => _handle_handshake(conn, _buffer)?
+      | _Connecting => _handle_handshake(conn, _buffer)
       | _Open => _handle_frame(conn, _buffer)?
       end
     else
@@ -76,16 +72,27 @@ class _TCPConnectionNotify is TCPConnectionNotify
 
   fun ref connect_failed(conn: TCPConnection ref) => None
 
-  fun ref _handle_handshake(conn: TCPConnection ref, buffer: Reader ref) ? =>
-    match _http_parser.parse(_buffer)?
-    | let req: _HandshakeRequest =>
-      let rep = req.handshake()?
-      conn.write(rep)
-      _state = _Open
-      match _connecion
-      | let c: WebSocketConnection => _notify.opened(c)
+  fun ref _handle_handshake(conn: TCPConnection ref, buffer: Reader ref) =>
+    try
+      match _http_parser.parse(_buffer)?
+      | let req: _HandshakeRequest =>
+        let rep = req.handshake()?
+        conn.write(rep)
+        _state = _Open
+        // 1. Create
+        match _connecion
+        | None =>
+          _connecion = WebSocketConnection(conn)
+        end
+        // 2. Notify
+        match _connecion
+        | let c: WebSocketConnection => _notify.opened(c)
+        end
+        conn.expect(2) // expect minimal header
       end
-      conn.expect(2) // expect minimal header
+    else
+      conn.write("HTTP/1.1 400 BadRequest\r\n\r\n")
+      conn.dispose()
     end
 
   fun ref _handle_frame(conn: TCPConnection ref, buffer: Reader ref)? =>
