@@ -111,10 +111,11 @@ class _TCPConnectionNotify is TCPConnectionNotify
       conn.expect(n) // need more data to parse an frame
     end
 
-    fun ref closed(conn: TCPConnection ref) =>
-      // When TCP connection is closed, enter CLOSED state.
-      // See https://tools.ietf.org/html/rfc6455#section-7.1.4
-      _state = _Closed
-      match _connecion
-      | let c: WebSocketConnection => _notify.closed(c)
-      end
+  fun ref closed(conn: TCPConnection ref) =>
+    // When TCP connection is closed, enter CLOSED state.
+    // See https://tools.ietf.org/html/rfc6455#section-7.1.4
+    _state = _Closed
+    match _connecion
+    | let c: WebSocketConnection =>
+      _notify.closed(c)
+    end

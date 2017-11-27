@@ -60,4 +60,6 @@ class EchoConnectionNotify is WebSocketConnectionNotify
     @printf[I32]("Connection closed\n".cstring())
 ```
 
+An simplified API is also provided: [example](./examples/simple-echo/main.pony).
+
 See more [examples](./examples).
