@@ -1,4 +1,6 @@
 # pony-websocket
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Foraoto%2Fpony-websocket.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Foraoto%2Fpony-websocket?ref=badge_shield)
+
 
 WebSocket server for pony
 
@@ -55,3 +57,7 @@ class EchoConnectionNotify is WebSocketConnectionNotify
 An simplified API is also provided: [example](./examples/simple-echo/main.pony).
 
 See more [examples](./examples).
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Foraoto%2Fpony-websocket.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Foraoto%2Fpony-websocket?ref=badge_large)
