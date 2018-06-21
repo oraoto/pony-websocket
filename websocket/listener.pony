@@ -36,7 +36,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
   let _buffer: Reader ref = Reader
   var _state: State = _Connecting
   var _frame_decoder: _FrameDecoder ref = _FrameDecoder
-  var _connecion: (WebSocketConnection | None) = None
+  var _connection: (WebSocketConnection | None) = None
 
   new iso create(notify: WebSocketConnectionNotify iso) =>
     _notify = consume notify
@@ -60,7 +60,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
 
     match _state
     | _Error  =>
-      match _connecion
+      match _connection
       | let c: WebSocketConnection =>
         c._close(_frame_decoder.status)
       end
@@ -80,12 +80,12 @@ class _TCPConnectionNotify is TCPConnectionNotify
         conn.write(rep)
         _state = _Open
         // 1. Create
-        match _connecion
+        match _connection
         | None =>
-          _connecion = WebSocketConnection(conn)
+          _connection = WebSocketConnection(conn)
         end
         // 2. Notify
-        match _connecion
+        match _connection
         | let c: WebSocketConnection => _notify.opened(c)
         end
         conn.expect(2) // expect minimal header
@@ -99,7 +99,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
     let frame = _frame_decoder.decode(_buffer)?
     match frame
     | let f: Frame val =>
-      match (_connecion, f.opcode)
+      match (_connection, f.opcode)
       | (None, Text) => error
       | (let c : WebSocketConnection, Text)   => _notify.text_received(c, f.data as String)
       | (let c : WebSocketConnection, Binary) => _notify.binary_received(c, f.data as Array[U8] val)
@@ -115,7 +115,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
     // When TCP connection is closed, enter CLOSED state.
     // See https://tools.ietf.org/html/rfc6455#section-7.1.4
     _state = _Closed
-    match _connecion
+    match _connection
     | let c: WebSocketConnection =>
       _notify.closed(c)
     end

@@ -49,7 +49,7 @@ class _HttpParser
   fun ref _parse_headers(buffer: Reader): (_HandshakeRequest ref | None) ? =>
     while true do
       try
-        let line = buffer.line()?
+        let line: String = buffer.line()?
         if line.size() == 0 then
           return _request // Finish parsing
         else
