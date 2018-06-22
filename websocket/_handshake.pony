@@ -16,7 +16,15 @@ class _HandshakeRequest
 
       if version.lower() != "13" then error end
       if upgrade.lower() != "websocket" then error end
-      if connection.lower() != "upgrade" then error end
+      var conn_upgrade = false
+      for s in connection.split_by(",").values() do
+        if s.lower().>strip(" ") == "upgrade" then
+          conn_upgrade = true
+          break
+        end
+      end
+      if not conn_upgrade then error end
+
       response(_handshake(key))
     else
       error
@@ -29,7 +37,7 @@ class _HandshakeRequest
       + "Sec-WebSocket-Accept:" + key
       + "\r\n\r\n"
 
-  fun _handshake(key:String): String =>
+  fun _handshake(key: String): String =>
     let c = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
     let digest = Digest.sha1()
     try
