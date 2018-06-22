@@ -1,5 +1,7 @@
 # pony-websocket
 
+[![CircleCI](https://circleci.com/gh/oraoto/pony-websocket/tree/master.svg?style=svg)](https://circleci.com/gh/oraoto/pony-websocket/tree/master)
+
 WebSocket server for pony
 
 It's RFC6455 conformant, see [test report](https://oraoto.github.io/pony-websocket/).

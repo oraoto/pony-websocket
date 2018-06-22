@@ -6,13 +6,13 @@ jobs:
       - image: ponylang/ponyc:release
     steps:
       - checkout
-      - run: make test
+      - run: make examples
   vs-ponyc-master:
     docker:
       - image: ponylang/ponyc:latest
     steps:
       - checkout
-      - run: make test
+      - run: make examples
 
 workflows:
   version: 2
