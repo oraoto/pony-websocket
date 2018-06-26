@@ -15,10 +15,10 @@ actor EchoWebSocketNotify is SimpleWebSocketNotify
     @printf[I32]("New client connected\n".cstring())
 
   be text_received(conn: WebSocketConnection tag, text: String) =>
-    conn.send_text(text)
+    conn.send_text_be(text)
 
   be binary_received(conn: WebSocketConnection tag, data: Array[U8] val) =>
-    conn.send_binary(data)
+    conn.send_binary_be(data)
 
   be closed(conn: WebSocketConnection tag) =>
     @printf[I32]("Connection closed\n".cstring())

@@ -2,12 +2,12 @@ use "collections"
 use "encode/base64"
 use "crypto"
 
-class _HandshakeRequest
+class HandshakeRequest
   var method: String = ""
   var resource: String = ""
   let headers: Map[String, String] = headers.create(32)
 
-  fun handshake(): String? =>
+  fun _handshake(): String ? =>
     try
       let version = headers("sec-websocket-version")?
       let key = headers("sec-websocket-key")?
@@ -25,19 +25,19 @@ class _HandshakeRequest
       end
       if not conn_upgrade then error end
 
-      response(_handshake(key))
+      _response(_accept_key(key))
     else
       error
     end
 
-  fun response(key: String): String =>
+  fun _response(key: String): String =>
     "HTTP/1.1 101 Switching Protocols\r\n"
       + "Upgrade: websocket\r\n"
       + "Connection: Upgrade\r\n"
       + "Sec-WebSocket-Accept:" + key
       + "\r\n\r\n"
 
-  fun _handshake(key: String): String =>
+  fun _accept_key(key: String): String =>
     let c = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
     let digest = Digest.sha1()
     try
@@ -45,3 +45,6 @@ class _HandshakeRequest
     end
     let d = digest.final()
     Base64.encode(d)
+
+  fun ref _set_header(key: String, value: String) =>
+    headers(key) = value

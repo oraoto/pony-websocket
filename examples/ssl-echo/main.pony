@@ -32,14 +32,14 @@ class EchoListenNotify is WebSocketListenNotify
     @printf[I32]("Failed listening\n".cstring())
 
 class EchoConnectionNotify is WebSocketConnectionNotify
-  fun ref opened(conn: WebSocketConnection tag) =>
+  fun ref opened(conn: WebSocketConnection ref) =>
     @printf[I32]("New client connected\n".cstring())
 
-  fun ref text_received(conn: WebSocketConnection tag, text: String) =>
+  fun ref text_received(conn: WebSocketConnection ref, text: String) =>
     conn.send_text(text)
 
-  fun ref binary_received(conn: WebSocketConnection tag, data: Array[U8] val) =>
+  fun ref binary_received(conn: WebSocketConnection ref, data: Array[U8] val) =>
     conn.send_binary(data)
 
-  fun ref closed(conn: WebSocketConnection tag) =>
+  fun ref closed(conn: WebSocketConnection ref) =>
     @printf[I32]("Connection closed\n".cstring())

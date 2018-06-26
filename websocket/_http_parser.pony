@@ -12,23 +12,23 @@ class _HttpParser
   A cutdown version of net/http/_http_parser, just parse request line and headers.
   """
 
-  var _request: _HandshakeRequest = _HandshakeRequest
+  var _request: HandshakeRequest trn = HandshakeRequest
   var _state: _ParserState = _ExpectRequest
 
-  fun ref parse(buffer: Reader ref): (_HandshakeRequest | None)? =>
-  """
-    Return an _HandshakeRequest on success.
+  fun ref parse(buffer: Reader ref): (HandshakeRequest val | None) ? =>
+    """
+    Return a HandshakeRequest on success.
     Return None for more data.
-  """
+    """
     match _state
     | _ExpectRequest => _parse_request(buffer)?
     | _ExpectHeaders => _parse_headers(buffer)?
     end
 
-  fun ref _parse_request(buffer: Reader): None? =>
-  """
-  Parse request-line: "<Method> <URL> <Proto>"
-  """
+  fun ref _parse_request(buffer: Reader): None ? =>
+    """
+    Parse request-line: "<Method> <URL> <Proto>"
+    """
     try
       let line = buffer.line()?
       try
@@ -44,17 +44,18 @@ class _HttpParser
       return None // expect more data for a line
     end
 
-    if _state is _ExpectError then error end // Not an valid request-line
+    if _state is _ExpectError then error end // Not a valid request-line
 
-  fun ref _parse_headers(buffer: Reader): (_HandshakeRequest ref | None) ? =>
+  fun ref _parse_headers(buffer: Reader): (HandshakeRequest val | None) ? =>
     while true do
       try
-        let line: String = buffer.line()?
+        let line = buffer.line()?
         if line.size() == 0 then
-          return _request // Finish parsing
+          _state = _ExpectRequest
+          return _request = HandshakeRequest // Finish parsing and reset
         else
           try
-            _process_header(line)?
+            _process_header(consume line)?
           else
             _state = _ExpectError
             break
@@ -67,13 +68,9 @@ class _HttpParser
 
     if _state is _ExpectError then error end
 
-  fun ref _process_header(line: String) ? =>
+  fun ref _process_header(line: String iso) ? =>
     let i = line.find(":")?
-    let key = line.substring(0, i)
-    key.strip()
-    key.lower_in_place()
-    let key2: String val = consume key
-    let value = line.substring(i + 1)
-    value.strip()
-    let value2: String val = consume value
-    _request.headers(key2) = value2
+    (let key, let value) = (consume line).chop(i.usize())
+    key.>strip().lower_in_place()
+    value.>shift()?.strip()
+    _request._set_header(consume key, consume value)
