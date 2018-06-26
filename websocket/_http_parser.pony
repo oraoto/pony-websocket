@@ -49,13 +49,13 @@ class _HttpParser
   fun ref _parse_headers(buffer: Reader): (HandshakeRequest val | None) ? =>
     while true do
       try
-        let line: String = buffer.line()?
+        let line = buffer.line()?
         if line.size() == 0 then
           _state = _ExpectRequest
           return _request = HandshakeRequest // Finish parsing and reset
         else
           try
-            _process_header(line)?
+            _process_header(consume line)?
           else
             _state = _ExpectError
             break
@@ -68,13 +68,9 @@ class _HttpParser
 
     if _state is _ExpectError then error end
 
-  fun ref _process_header(line: String) ? =>
+  fun ref _process_header(line: String iso) ? =>
     let i = line.find(":")?
-    let key = line.substring(0, i)
-    key.strip()
-    key.lower_in_place()
-    let key2: String val = consume key
-    let value = line.substring(i + 1)
-    value.strip()
-    let value2: String val = consume value
-    _request._set_header(key2, value2)
+    (let key, let value) = (consume line).chop(i.usize())
+    key.>strip().lower_in_place()
+    value.>shift()?.strip()
+    _request._set_header(consume key, consume value)
