@@ -40,7 +40,7 @@ primitive _Error
 type State is (_Connecting | _Open | _Closed | _Error)
 
 class _TCPConnectionNotify is TCPConnectionNotify
-  var _notify: WebSocketConnectionNotify ref
+  var _notify: (WebSocketConnectionNotify iso | None)
   var _http_parser: _HttpParser ref = _HttpParser
   let _buffer: Reader ref = Reader
   var _state: State = _Connecting
@@ -84,18 +84,14 @@ class _TCPConnectionNotify is TCPConnectionNotify
   fun ref _handle_handshake(conn: TCPConnection ref, buffer: Reader ref) =>
     try
       match _http_parser.parse(_buffer)?
-      | let req: _HandshakeRequest =>
-        let rep = req.handshake()?
+      | let req: HandshakeRequest val =>
+        let rep = req._handshake()?
         conn.write(rep)
         _state = _Open
-        // 1. Create
-        match _connection
-        | None =>
-          _connection = WebSocketConnection(conn)
-        end
-        // 2. Notify
-        match _connection
-        | let c: WebSocketConnection => _notify.opened(c)
+        // Create connection
+        match (_notify = None, _connection)
+        | (let n: WebSocketConnectionNotify iso, None) =>
+          _connection = WebSocketConnection(conn, consume n, req)
         end
         conn.expect(2) // expect minimal header
       end
@@ -110,8 +106,8 @@ class _TCPConnectionNotify is TCPConnectionNotify
     | let f: Frame val =>
       match (_connection, f.opcode)
       | (None, Text) => error
-      | (let c : WebSocketConnection, Text)   => _notify.text_received(c, f.data as String)
-      | (let c : WebSocketConnection, Binary) => _notify.binary_received(c, f.data as Array[U8] val)
+      | (let c : WebSocketConnection, Text)   => c._text_received(f.data as String)
+      | (let c : WebSocketConnection, Binary) => c._binary_received(f.data as Array[U8] val)
       | (let c : WebSocketConnection, Ping)   => c._send_pong(f.data as Array[U8] val)
       | (let c : WebSocketConnection, Close)  => c._close(1000)
       end
@@ -126,5 +122,5 @@ class _TCPConnectionNotify is TCPConnectionNotify
     _state = _Closed
     match _connection
     | let c: WebSocketConnection =>
-      _notify.closed(c)
+      c._notify_closed()
     end
