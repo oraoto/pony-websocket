@@ -1,6 +1,7 @@
 # pony-websocket
 
-[![CircleCI](https://circleci.com/gh/oraoto/pony-websocket/tree/master.svg?style=svg)](https://circleci.com/gh/oraoto/pony-websocket/tree/master)
+[![CircleCI](https://img.shields.io/circleci/project/github/oraoto/pony-websocket.svg)](https://circleci.com/gh/oraoto/pony-websocket/tree/master)
+![stability](https://img.shields.io/badge/stability-experimental-red.svg)
 
 WebSocket server for pony
 
