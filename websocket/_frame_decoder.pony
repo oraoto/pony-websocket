@@ -116,7 +116,7 @@ class _FrameDecoder
       new_p
     end
 
-  fun ref _parse_header(buffer: Reader): USize? =>
+  fun ref _parse_header(buffer: Reader): (USize | Frame val)? =>
     status = 1000
 
     let first_byte = buffer.u8()?
@@ -181,7 +181,19 @@ class _FrameDecoder
     end
 
     // set state and return expect bytes
-    if payload_len == 126 then
+    if (payload_len == 0) and (not masked) then
+      state = _ExpectHeader
+      return match opcode
+      | Text => Frame.text("")
+      | Binary => Frame.binary([])
+      | Ping => Frame.ping([])
+      | Ping => Frame.pong([])
+      else
+        // Close should always have a payload of at least 2 bytes.
+        // Continuation should also have a non-zero payload
+        _throw[Frame val](1002)?
+      end
+    elseif payload_len == 126 then
       state = _ExpectExtendedPayloadLen16
       return 2
     elseif payload_len == 127 then
