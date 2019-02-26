@@ -24,9 +24,11 @@ class _FrameDecoder
   var fragment_started: Bool = false
   var fragment: Writer = Writer // fragment buffer
 
-  // USize: expect more data
-  // Frame: an parsed frame
   fun ref decode(buffer: Reader): (USize | Frame val)? =>
+    """
+    USize: expect more data
+    Frame: an parsed frame
+    """
     match state
       | _ExpectHeader => _parse_header(buffer)?
       | _ExpectExtendedPayloadLen16 => _parse_extended_16(buffer)?
@@ -100,14 +102,12 @@ class _FrameDecoder
     recover
       let new_p = Array[U8].create(size)
       var i: USize = 0
-      // var c: USize = 0
       for f in (consume fragment_data).values() do
         match f
         | let u: Array[U8] val =>
           let s = u.size()
           u.copy_to(new_p, 0, i, s)
           i = i + s
-          // c = c + 1
         end
       end
       let p: Array[U8 val] val = consume payload

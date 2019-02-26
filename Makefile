@@ -33,12 +33,14 @@ clean:
 	rm -rf $(BUILD_DIR) .coverage
 
 test:
-	docker run -it --rm \
+	$(BUILD_DIR)/echo-server > /dev/null &
+	docker run -it --rm --userns=host \
 	  -v ${PWD}/tests:/config \
 	  -v ${PWD}/reports:/reports \
 	  --network host \
 	  --name fuzzingclient \
 	  crossbario/autobahn-testsuite \
 	  /usr/local/bin/wstest --mode fuzzingclient --spec /config/fuzzingclient.json
+	killall echo-server
 
 .PHONY: clean examples test
