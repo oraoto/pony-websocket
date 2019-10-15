@@ -9,6 +9,8 @@ EXAMPLES_DIR ?= examples
 SOURCE_FILES := $(shell find $(SRC_DIR) -name \*.pony)
 EXAMPLES_SOURCE_FILES := $(shell find $(EXAMPLES_DIR) -name \*.pony)
 
+OPENSSL_VERSION ?= openssl_0.9.0
+
 ifdef config
   ifeq (,$(filter $(config),debug release))
     $(error Unknown configuration "$(config)")
@@ -25,10 +27,10 @@ $(BUILD_DIR):
 
 examples: $(SOURCE_FILES) $(EXAMPLES_SOURCE_FILES) | $(BUILD_DIR)
 	stable fetch
-	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/broadcast   -o $(BUILD_DIR) $(PONYC_FLAGS)
-	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/echo-server -o $(BUILD_DIR) $(PONYC_FLAGS)
-	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/simple-echo -o $(BUILD_DIR) $(PONYC_FLAGS)
-	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/ssl-echo    -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable env $(PONYC) -D$(OPENSSL_VERSION) --path=. $(EXAMPLES_DIR)/broadcast   -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable env $(PONYC) -D$(OPENSSL_VERSION) --path=. $(EXAMPLES_DIR)/echo-server -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable env $(PONYC) -D$(OPENSSL_VERSION) --path=. $(EXAMPLES_DIR)/simple-echo -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable env $(PONYC) -D$(OPENSSL_VERSION) --path=. $(EXAMPLES_DIR)/ssl-echo    -o $(BUILD_DIR) $(PONYC_FLAGS)
 
 clean:
 	rm -rf $(BUILD_DIR) .coverage
