@@ -24,10 +24,11 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 examples: $(SOURCE_FILES) $(EXAMPLES_SOURCE_FILES) | $(BUILD_DIR)
-	stable env $(PONYC) --path=. $(EXAMPLES_DIR)/broadcast   -o $(BUILD_DIR) $(PONYC_FLAGS)
-	stable env $(PONYC) --path=. $(EXAMPLES_DIR)/echo-server -o $(BUILD_DIR) $(PONYC_FLAGS)
-	stable env $(PONYC) --path=. $(EXAMPLES_DIR)/simple-echo -o $(BUILD_DIR) $(PONYC_FLAGS)
-	stable env $(PONYC) --path=. $(EXAMPLES_DIR)/ssl-echo    -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable fetch
+	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/broadcast   -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/echo-server -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/simple-echo -o $(BUILD_DIR) $(PONYC_FLAGS)
+	stable env $(PONYC) -Dopenssl_1.1.x --path=. $(EXAMPLES_DIR)/ssl-echo    -o $(BUILD_DIR) $(PONYC_FLAGS)
 
 clean:
 	rm -rf $(BUILD_DIR) .coverage

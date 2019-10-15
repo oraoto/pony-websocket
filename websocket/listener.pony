@@ -1,6 +1,6 @@
 use "net"
 use "buffered"
-use "net/ssl"
+use "net_ssl"
 
 actor WebSocketListener
   let _tcp_listner: TCPListener
@@ -93,7 +93,7 @@ class _TCPConnectionNotify is TCPConnectionNotify
         | (let n: WebSocketConnectionNotify iso, None) =>
           _connection = WebSocketConnection(conn, consume n, req)
         end
-        conn.expect(2) // expect minimal header
+        conn.expect(2)? // expect minimal header
       end
     else
       conn.write("HTTP/1.1 400 BadRequest\r\n\r\n")
@@ -111,9 +111,9 @@ class _TCPConnectionNotify is TCPConnectionNotify
       | (let c : WebSocketConnection, Ping)   => c._send_pong(f.data as Array[U8] val)
       | (let c : WebSocketConnection, Close)  => c._close(1000)
       end
-      conn.expect(2) // expect next header
+      conn.expect(2)? // expect next header
     | let n: USize =>
-      conn.expect(n) // need more data to parse an frame
+      conn.expect(n)? // need more data to parse an frame
     end
 
   fun ref closed(conn: TCPConnection ref) =>
