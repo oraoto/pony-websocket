@@ -60,7 +60,10 @@ class _TCPConnectionNotify is TCPConnectionNotify
 
     try
       match _state
-      | _Connecting => _handle_handshake(conn, _buffer)
+      | _Connecting =>
+          while (_buffer.size() > 0) do
+            _handle_handshake(conn, _buffer)
+          end
       | _Open => _handle_frame(conn, _buffer)?
       end
     else
