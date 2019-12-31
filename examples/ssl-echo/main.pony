@@ -1,5 +1,5 @@
 use "package:../../websocket"
-use "net/ssl"
+use "net_ssl"
 use "files"
 
 // Put your test cert.pem and key.pem in this directory

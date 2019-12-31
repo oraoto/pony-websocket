@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 jobs:
   vs-ponyc-release:
@@ -6,19 +6,23 @@ jobs:
       - image: ponylang/ponyc:release
     steps:
       - checkout
-      - run: make examples
+      - run: apt-get install make libssl-dev
+      - run: make examples OPENSSL_VERSION=openssl_1.1.x
   vs-ponyc-master:
     docker:
       - image: ponylang/ponyc:latest
     steps:
       - checkout
-      - run: make examples
+      - run: apt-get install make libssl-dev
+      - run: make examples OPENSSL_VERSION=openssl_1.1.x
 
 workflows:
-  version: 2
+  version: 2.1
+
   commit:
     jobs:
       - vs-ponyc-release
+
   nightly:
     triggers:
       - schedule:
