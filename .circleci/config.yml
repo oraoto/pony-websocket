@@ -6,14 +6,14 @@ jobs:
       - image: ponylang/ponyc:release
     steps:
       - checkout
-      - run: apt-get install make libssl-dev
+      - run: apt-get install -y make libssl-dev
       - run: make examples OPENSSL_VERSION=openssl_1.1.x
   vs-ponyc-master:
     docker:
       - image: ponylang/ponyc:latest
     steps:
       - checkout
-      - run: apt-get install make libssl-dev
+      - run: apt-get install -y make libssl-dev
       - run: make examples OPENSSL_VERSION=openssl_1.1.x
 
 workflows:
