@@ -6,7 +6,7 @@ actor Main
 
     try
       let listener = WebSocketListener(
-        env.root as AmbientAuth, EchoListenNotify, "0.0.0.0", "8989")
+        env.root as AmbientAuth, EchoListenNotify, "0.0.0.0", "8989", 0, 16777216 + 4)
     end
 
 class EchoListenNotify is WebSocketListenNotify

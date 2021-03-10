@@ -5,8 +5,26 @@ use "net_ssl"
 actor WebSocketListener
   let _tcp_listner: TCPListener
 
-  new create(auth: TCPListenerAuth, notify: WebSocketListenNotify iso, host: String, service: String, ssl_context: (SSLContext | None) = None) =>
-    _tcp_listner = TCPListener(auth, recover _TCPListenNotify(consume notify, ssl_context) end, host, service)
+  new create(
+    auth: TCPListenerAuth,
+    notify: WebSocketListenNotify iso,
+    host: String,
+    service: String,
+    limit: USize val = 0,
+    read_buffer_size: USize val = 16384,
+    yield_after_reading: USize val = 16384,
+    yield_after_writing: USize val = 16384,
+    ssl_context: (SSLContext | None) = None
+    )
+  =>
+    _tcp_listner = TCPListener(auth,
+      recover _TCPListenNotify(consume notify, ssl_context) end,
+      host,
+      service,
+      limit,
+      read_buffer_size,
+      yield_after_reading,
+      yield_after_writing)
 
 class _TCPListenNotify is TCPListenNotify
   var notify: WebSocketListenNotify iso
@@ -116,7 +134,9 @@ class _TCPConnectionNotify is TCPConnectionNotify
       end
       conn.expect(2)? // expect next header
     | let n: USize =>
-      conn.expect(n)? // need more data to parse an frame
+        // need more data to parse an frame
+        // notice: if n > read_buffer_size, connection will be closed
+        conn.expect(n)?
     end
 
   fun ref closed(conn: TCPConnection ref) =>

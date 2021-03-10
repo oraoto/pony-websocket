@@ -9,5 +9,6 @@ interface WebSocketConnectionNotify
   fun ref text_received(conn: WebSocketConnection ref, text: String): None =>
     None
 
-  fun ref binary_received(conn: WebSocketConnection ref, data: Array[U8 val] val): None =>
-    None
+  fun ref binary_received(
+    conn: WebSocketConnection ref,
+    data: Array[U8 val] val): None => None

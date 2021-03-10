@@ -1,0 +1,12 @@
+{
+  "locks": [
+    {
+      "locator": "github.com/ponylang/net_ssl.git",
+      "revision": ""
+    },
+    {
+      "locator": "github.com/ponylang/crypto.git",
+      "revision": ""
+    }
+  ]
+}

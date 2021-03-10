@@ -3,3 +3,5 @@ build/*
 reports
 websocket-docs
 .deps
+_corral
+_repos

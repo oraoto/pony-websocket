@@ -9,11 +9,27 @@ It's RFC6455 conformant, see [test report](https://oraoto.github.io/pony-websock
 
 ## Installation
 
-* Install [pony-stable](https://github.com/ponylang/pony-stable)
-* `stable add github oraoto/pony-websocket`
-* `stable fetch` to fetch your dependencies
+* Install [corral](https://github.com/ponylang/corral)
+* `corral add github github.com/ponylang/net_ssl.git`
+* `corral fetch` to fetch your dependencies
 * `use "websocket"` to include this package
-* `stable env ponyc` to compile your application
+* `corral run -- ponyc` to compile your applicatpion
+
+## Select OpenSSL Version
+
+You must select an SSL version to use.
+
+Using OpenSSL 0.9.0
+
+```
+corral run -- ponyc -Dopenssl_0.9.0
+```
+
+Using OpenSSL 1.1.x:
+
+```
+corral run -- ponyc -Dopenssl_1.1.x
+```
 
 ## Usage
 

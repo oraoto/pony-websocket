@@ -1,0 +1,21 @@
+{
+  "packages": [],
+  "deps": [
+    {
+      "locator": "github.com/ponylang/net_ssl.git",
+      "version": "main"
+    },
+    {
+      "locator": "github.com/ponylang/crypto.git",
+      "version": "main"
+    }
+  ],
+  "info": {
+    "description": "",
+    "homepage": "",
+    "license": "",
+    "documentation_url": "",
+    "version": "",
+    "name": ""
+  }
+}
