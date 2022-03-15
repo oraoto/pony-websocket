@@ -1,13 +1,14 @@
+use "net"
 use "package:../../websocket"
+use @printf[I32](fmt: Pointer[U8] tag, ...)
 
 actor Main
   new create(env: Env) =>
     env.out.print("Start server")
+    let tcplauth: TCPListenAuth = TCPListenAuth(env.root)
 
-    try
-      let listener = WebSocketListener(
-        env.root as AmbientAuth, EchoListenNotify, "0.0.0.0", "8989", 0, 16777216 + 4)
-    end
+    let listener = WebSocketListener(tcplauth,
+      EchoListenNotify, "0.0.0.0", "8989", 0, 16777216 + 4)
 
 class EchoListenNotify is WebSocketListenNotify
   // A tcp connection connected, return a WebsocketConnectionNotify instance
@@ -15,12 +16,12 @@ class EchoListenNotify is WebSocketListenNotify
     EchoConnectionNotify
 
   fun ref not_listening() =>
-    @printf[I32]("Failed listening\n".cstring())
+    @printf("Failed listening\n".cstring())
 
 class EchoConnectionNotify is WebSocketConnectionNotify
   // A websocket connection enters the OPEN state
   fun ref opened(conn: WebSocketConnection ref) =>
-    @printf[I32]("New client connected\n".cstring())
+    @printf("New client connected\n".cstring())
 
   // UTF-8 text data received
   fun ref text_received(conn: WebSocketConnection ref, text: String) =>
@@ -33,4 +34,4 @@ class EchoConnectionNotify is WebSocketConnectionNotify
 
   // A websocket connection enters the CLOSED state
   fun ref closed(conn: WebSocketConnection ref) =>
-    @printf[I32]("Connection closed\n".cstring())
+    @printf("Connection closed\n".cstring())

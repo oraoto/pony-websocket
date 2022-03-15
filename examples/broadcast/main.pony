@@ -1,25 +1,26 @@
+use "net"
 use "package:../../websocket"
 use "collections"
+use @printf[I32](fmt: Pointer[U8] tag, ...)
 
 actor Main
   new create(env: Env) =>
     env.out.print("Start server")
+    let tcplauth: TCPListenAuth = TCPListenAuth(env.root)
 
-    try
-      let listener = WebSocketListener(
-        env.root as AmbientAuth, BroadcastListenNotify, "127.0.0.1","8989")
-    end
+    let listener = WebSocketListener(tcplauth, BroadcastListenNotify,
+      "127.0.0.1","8989")
 
 actor ConnectionManager
   var _connections: SetIs[WebSocketConnection] =
     SetIs[WebSocketConnection].create()
 
   be add(conn: WebSocketConnection) =>
-    @printf[I32]("Add connection\n".cstring())
+    @printf("Add connection\n".cstring())
     _connections.set(conn)
 
   be remove(conn: WebSocketConnection) =>
-    @printf[I32]("Remove connection\n".cstring())
+    @printf("Remove connection\n".cstring())
     _connections.unset(conn)
 
   be broadcast_text(text: String) =>
@@ -39,7 +40,7 @@ class BroadcastListenNotify is WebSocketListenNotify
     BroadcastConnectionNotify(_conn_manager)
 
   fun ref not_listening() =>
-    @printf[I32]("Failed listening\n".cstring())
+    @printf("Failed listening\n".cstring())
 
 class BroadcastConnectionNotify is WebSocketConnectionNotify
   var _conn_manager: ConnectionManager

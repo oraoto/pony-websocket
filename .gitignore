@@ -5,3 +5,4 @@ websocket-docs
 .deps
 _corral
 _repos
+/lock.json

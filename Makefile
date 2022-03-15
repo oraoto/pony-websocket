@@ -42,6 +42,6 @@ test:
 	  --network host \
 	  --name fuzzingclient \
 	  crossbario/autobahn-testsuite \
-	 /usr/local/bin/wstest --mode fuzzingclient --spec /config/fuzzingclient.json
+	 /opt/pypy/bin/wstest --mode fuzzingclient --spec /config/fuzzingclient.json
 
 .PHONY: clean examples test
