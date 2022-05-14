@@ -6,7 +6,7 @@ actor WebSocketListener
   let _tcp_listner: TCPListener
 
   new create(
-    auth: TCPListenerAuth,
+    auth: TCPListenAuth,
     notify: WebSocketListenNotify iso,
     host: String,
     service: String,
