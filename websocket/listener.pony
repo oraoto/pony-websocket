@@ -39,9 +39,9 @@ class _TCPListenNotify is TCPListenNotify
     match ssl_context
     | let ctx: SSLContext =>
       let ssl = ctx.server()?
-      SSLConnection(_TCPConnectionNotify(consume n), consume ssl)
+      SSLConnection(WebsocketTCPConnectionNotify(consume n), consume ssl)
     else
-      _TCPConnectionNotify(consume n)
+      WebsocketTCPConnectionNotify(consume n)
     end
 
   fun ref not_listening(listen: TCPListener ref) =>
@@ -57,7 +57,7 @@ primitive _Error
 
 type State is (_Connecting | _Open | _Closed | _Error)
 
-class _TCPConnectionNotify is TCPConnectionNotify
+class WebsocketTCPConnectionNotify is TCPConnectionNotify
   var _notify: (WebSocketConnectionNotify iso | None)
   var _http_parser: _HttpParser ref = _HttpParser
   let _buffer: Reader ref = Reader
