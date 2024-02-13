@@ -68,6 +68,12 @@ class WebsocketTCPConnectionNotify is TCPConnectionNotify
   new iso create(notify: WebSocketConnectionNotify iso) =>
     _notify = consume notify
 
+  new iso open(notify: WebSocketConnectionNotify iso, conn: TCPConnection) =>
+    _state = _Open
+    _notify = None
+    _connection = WebSocketConnection(conn, consume notify, HandshakeRequest.create())
+
+
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize) : Bool =>
     // Should not handle any data when connection closed or error occured
     if (_state is _Error) or (_state is _Closed) then
