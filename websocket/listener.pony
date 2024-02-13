@@ -68,10 +68,10 @@ class WebsocketTCPConnectionNotify is TCPConnectionNotify
   new iso create(notify: WebSocketConnectionNotify iso) =>
     _notify = consume notify
 
-  new iso open(notify: WebSocketConnectionNotify iso, conn: TCPConnection) =>
+  new iso open(notify: WebSocketConnectionNotify iso) =>
     _state = _Open
-    _notify = None
-    _connection = WebSocketConnection(conn, consume notify, HandshakeRequest.create())
+    _notify = consume notify
+    _connection = None
 
 
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize) : Bool =>
@@ -88,7 +88,12 @@ class WebsocketTCPConnectionNotify is TCPConnectionNotify
           while (_buffer.size() > 0) do
             _handle_handshake(conn, _buffer)
           end
-      | _Open => _handle_frame(conn, _buffer)?
+      | _Open if _connection is None =>
+        // initialize the connection first
+        _connection = WebSocketConnection(conn, _notify = None, HandshakeRequest.create())
+        _handle_frame(conn, _buffer)?
+      | _Open =>
+        _handle_frame(conn, _buffer)?
       end
     else
       _state = _Error
