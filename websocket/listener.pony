@@ -90,7 +90,12 @@ class WebsocketTCPConnectionNotify is TCPConnectionNotify
           end
       | _Open if _connection is None =>
         // initialize the connection first
-        _connection = WebSocketConnection(conn, _notify = None, HandshakeRequest.create())
+        match _notify = None
+        | let ws_notify: WebSocketConnectionNotify iso =>
+          _connection = WebSocketConnection(conn, consume ws_notify, HandshakeRequest.create())
+        else
+          error
+        end
         _handle_frame(conn, _buffer)?
       | _Open =>
         _handle_frame(conn, _buffer)?
