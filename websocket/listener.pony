@@ -61,11 +61,12 @@ class WebsocketTCPConnectionNotify is TCPConnectionNotify
   var _notify: (WebSocketConnectionNotify iso | None)
   var _http_parser: _HttpParser ref = _HttpParser
   let _buffer: Reader ref = Reader
-  var _state: State = _Connecting
+  var _state: State
   var _frame_decoder: _FrameDecoder ref = _FrameDecoder
   var _connection: (WebSocketConnection | None) = None
 
   new iso create(notify: WebSocketConnectionNotify iso) =>
+    _state = _Connecting
     _notify = consume notify
 
   new iso open(notify: WebSocketConnectionNotify iso) =>
@@ -138,22 +139,30 @@ class WebsocketTCPConnectionNotify is TCPConnectionNotify
     end
 
   fun ref _handle_frame(conn: TCPConnection ref, buffer: Reader ref)? =>
-    let frame = _frame_decoder.decode(_buffer)?
-    match frame
-    | let f: Frame val =>
-      match (_connection, f.opcode)
-      | (None, Text) => error
-      | (let c : WebSocketConnection, Text)   => c._text_received(f.data as String)
-      | (let c : WebSocketConnection, Binary) => c._binary_received(f.data as Array[U8] val)
-      | (let c : WebSocketConnection, Ping)   => c._send_pong(f.data as Array[U8] val)
-      | (let c : WebSocketConnection, Close)  => c._close(1000)
+    // as we do not always control the exact size we get in the next call (e.g.
+    // when the TCPConnection has been opened by another program) there might be
+    // some leftover data. We try to decode a frame as long as we have enough
+    // data
+    var expect: USize = 1
+    while expect <= buffer.size() do
+      let frame = _frame_decoder.decode(_buffer)?
+      match frame
+      | let f: Frame val =>
+        match (_connection, f.opcode)
+        | (None, Text) => error
+        | (let c : WebSocketConnection, Text)   => c._text_received(f.data as String)
+        | (let c : WebSocketConnection, Binary) => c._binary_received(f.data as Array[U8] val)
+        | (let c : WebSocketConnection, Ping)   => c._send_pong(f.data as Array[U8] val)
+        | (let c : WebSocketConnection, Close)  => c._close(1000)
+        end
+        expect = 2 // expect next header
+      | let n: USize =>
+          // need more data to parse a frame
+          expect = n
       end
-      conn.expect(2)? // expect next header
-    | let n: USize =>
-        // need more data to parse an frame
-        // notice: if n > read_buffer_size, connection will be closed
-        conn.expect(n)?
     end
+    // notice: if n > read_buffer_size, connection will be closed
+    conn.expect(expect - buffer.size())?
 
   fun ref closed(conn: TCPConnection ref) =>
     // When TCP connection is closed, enter CLOSED state.
