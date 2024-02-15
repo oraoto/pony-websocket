@@ -1,11 +1,23 @@
 use "buffered"
 
-primitive Continuation  fun apply(): U8 => 0x00
-primitive Text          fun apply(): U8 => 0x01
-primitive Binary        fun apply(): U8 => 0x02
-primitive Close         fun apply(): U8 => 0x08
-primitive Ping          fun apply(): U8 => 0x09
-primitive Pong          fun apply(): U8 => 0x0A
+primitive Continuation
+  fun apply(): U8 => 0x00
+  fun string(): String iso^ => "Continuation".clone()
+primitive Text
+  fun apply(): U8 => 0x01
+  fun string(): String iso^ => "Text".clone()
+primitive Binary
+  fun apply(): U8 => 0x02
+  fun string(): String iso^ => "Binary".clone()
+primitive Close
+  fun apply(): U8 => 0x08
+  fun string(): String iso^ => "Close".clone()
+primitive Ping
+  fun apply(): U8 => 0x09
+  fun string(): String iso^ => "Ping".clone()
+primitive Pong
+  fun apply(): U8 => 0x0A
+  fun string(): String iso^ => "Pong".clone()
 type Opcode is (Continuation | Text | Binary | Ping | Pong | Close)
 
 class trn Frame
