@@ -1,5 +1,5 @@
 PONYC ?= ponyc
-PONYC_FLAGS ?=--checktree --verify
+PONYC_FLAGS ?=--checktree
 config ?= release
 
 BUILD_DIR ?= build/$(config)
@@ -9,7 +9,7 @@ EXAMPLES_DIR ?= examples
 SOURCE_FILES := $(shell find $(SRC_DIR) -name \*.pony)
 EXAMPLES_SOURCE_FILES := $(shell find $(EXAMPLES_DIR) -name \*.pony)
 
-OPENSSL_VERSION ?= openssl_1.1.x
+OPENSSL_VERSION ?= openssl_3.0.x
 
 ifdef config
   ifeq (,$(filter $(config),debug release))

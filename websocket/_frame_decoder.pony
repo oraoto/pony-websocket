@@ -1,9 +1,14 @@
 use "buffered"
+//use "debug"
 
 primitive _ExpectHeader
+  fun string(): String iso^ => "expect header".clone()
 primitive _ExpectExtendedPayloadLen16
+  fun string(): String iso^ => "expect extended payload len 16".clone()
 primitive _ExpectExtendedPayloadLen64
+  fun string(): String iso^ => "expect extended payload len 64".clone()
 primitive _ExpectMaskKeyAndPayload
+  fun string(): String iso^ => "expect mask key and payload".clone()
 
 type _DecodeState is (
     _ExpectHeader
@@ -35,6 +40,7 @@ class _FrameDecoder
     end
 
   fun ref _parse_payload(buffer: Reader): (USize| Frame val)? =>
+    //Debug("parse payload. Expect " + _expect.string() + " bytes. Available: " + buffer.size().string())
     if masked then
       mask_key = buffer.block(4)?
     end
@@ -47,10 +53,12 @@ class _FrameDecoder
 
     if not _is_control(opcode) then
       if fragment_started and (not fin) then
+        //Debug("not FIN, storing fragment")
         fragment.write(consume payload)
         return 2 // next header
       else
         // frame completed
+        //Debug("frame completed")
         if fragment.size() > 0 then
           let size = payload.size() + fragment.size()
           let fragment_data: Array[ByteSeq] iso = fragment.done()
@@ -92,6 +100,7 @@ class _FrameDecoder
     try
       UTF8.validate(consume data, idx)?
     else
+      //Debug("Invalid UTF8")
       status = 1007
       error
     end
@@ -135,6 +144,7 @@ class _FrameDecoder
     | Close()   => Close
     | let other: U8 => _throw[Opcode](1002)?
     end
+    //Debug("OP: " + current_op.string())
 
     // Save prev_opcode, recover in _parse_payload
     if _is_pingpong(current_op) then
@@ -170,6 +180,7 @@ class _FrameDecoder
 
     let second_byte = buffer.u8()?
     masked = second_byte.shr(7) == 0b1
+    //Debug("masked: " + masked.string())
     let payload_len = second_byte and 0b01111111
 
     // validate control op and payload len
@@ -183,6 +194,7 @@ class _FrameDecoder
     // set state and return expect bytes
     if (payload_len == 0) and (not masked) then
       state = _ExpectHeader
+      //Debug("payload_len = 0")
       return match opcode
       | Text => Frame.text("")
       | Binary => Frame.binary([])
@@ -202,18 +214,21 @@ class _FrameDecoder
     else
       state = _ExpectMaskKeyAndPayload
       _payload_len = USize.from[U8](payload_len)
+      //Debug("payload len = " + _payload_len.string())
       _expect = _payload_len + if masked then 4 else 0 end
       return _expect
     end
 
   fun ref _parse_extended_16(buffer: Reader): USize? =>
     let payload_len = buffer.u16_be()?
+    //Debug("Extended payload_len 16 = " + payload_len.string())
     state = _ExpectMaskKeyAndPayload
     _payload_len = USize.from[U16](payload_len)
     _payload_len + if masked then 4 else 0 end
 
   fun ref _parse_extended_64(buffer: Reader): USize? =>
     let payload_len = buffer.u64_be()?
+    //Debug("Extended payload_len 64 = " + payload_len.string())
     state = _ExpectMaskKeyAndPayload
     _payload_len = USize.from[U64](payload_len)
     _payload_len + if masked then 4 else 0 end
@@ -247,6 +262,7 @@ class _FrameDecoder
   fun _is_pingpong(op: Opcode): Bool =>
     (op is Ping) or (op is Pong)
 
-  fun ref _throw[A](s: U16): A? =>
+  fun ref _throw[A](s: U16, loc: SourceLoc = __loc): A? =>
+    //Debug("Throw: " + s.string() + " @ " + loc.file() + ":" + loc.line().string())
     status = s
     error
